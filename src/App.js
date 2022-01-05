@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import './App.css';
+import { Entities, setConfig } from '@contrail/sdk';
+
 const Render = () => {
   // const stateRef = React.useRef([]);
   const [state, setState] = useState([]);
@@ -16,10 +18,19 @@ const Render = () => {
   };
 
   const onMessageReceivedFromIframe = React.useCallback(
-    event => {
+    async (event) => {
       // if (event.origin.startsWith('http://localhost:4201')) {
       if (event.data.app === 'vibeiq') {
         setState(event.data.content)
+        setConfig({
+          apiUserToken: event.data.authToken,
+          orgSlug: event.data.authOrg,
+          // apiGateway: 'https://api.vibeiq.com/dev/api',
+          apiGateway: process.env.REACT_APP_BASE_API_PATH
+        });
+        const publicApps = await new Entities().get({ entityName: 'app', relations: ['appOrgs'], criteria: { private: false } });
+        console.log("public apps", publicApps);
+        
         console.log("FromParent---", event.data, state);
         // stateRef.current = event.data.content;
       }
